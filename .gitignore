@@ -1,0 +1,7 @@
+data/
+outputs/
+logs/
+__pycache__/
+.idea
+*.log
+*.bak
