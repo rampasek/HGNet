@@ -22,11 +22,11 @@ Create a Python3 venv with:
 
 ## Training
 
-The datasets will be automatically downloaded via PyTorch Geometric (or generated) to `./data/`.
+The datasets will be automatically downloaded via PyTorch Geometric (or generated) to `data/`.
 
-For datasets that do not provide standardized train/validation/test splits, data split from `./splits/` will be used for cross-validation.
+For datasets that do not provide standardized train/validation/test splits, data split from `splits/` will be used for cross-validation.
 
-Model hyperparameters for each dataset are loaded from config files in `./configs/`, but can be over-ridden by command-line arguments.
+Model hyperparameters for each dataset are loaded from config files in `configs/`, but can be over-ridden by command-line arguments.
 
 To train default GNN architecture on default dataset (without Tensorboard logging) simply run:
 ```bash
@@ -43,25 +43,36 @@ Progression of training & validation statistics can be viewed in TensorBoard, e.
 tensorboard --logdir logs/run_20210608T052342
 ```
 
-[comment]: <> (## Color-connectivty task)
 
-[comment]: <> (Here we introduce synthetic graph classification datasets with the task of recognizing the connectivity of same-colored nodes in 4 graphs of varying topology.)
+## Datasets
+[Download all datasets generated in this work from Google Drive](https://drive.google.com/file/d/19BTfz3f9lpOa8CtTazubbd2MN6HhwY7q) (approx. 145MB ZIP, 3.15GB unpacked) 
 
-[comment]: <> (* The four Color-connectivity datasets were created by taking a graph and randomly coloring half of its nodes one color, e.g., red, and the other nodes blue, such that the red nodes either form a single connected island or two disjoint islands.)
+### Color-connectivty task
+We introduce synthetic graph classification datasets with the task of recognizing the connectivity of same-colored nodes in 4 graphs of varying topology.
+* The four Color-connectivity datasets were created by taking a graph and randomly coloring half of its nodes one color, e.g., red, and the other nodes blue, such that the red nodes either form a single connected island or two disjoint islands.
+  The binary classification task is then distinguishing between these two cases.
+  The node colorings were sampled by running two red-coloring random walks starting from two random nodes.
+* For the underlying graph topology we used: 1) 16x16 2D grid, 2) 32x32 2D grid, 3) Euroroad road network (Šubelj et al. 2011), and 4) Minnesota road network.
+* We sampled a balanced set of 15,000 coloring examples for each graph, except for Minnesota network for which we generated 6,000 examples due to memory constraints.
+* The Color-connectivity task requires combination of local and long-range graph information processing to which most existing message-passing Graph Neural Networks (GNNs) do not scale.
+  These datasets can serve as a common-sense validation for new and more powerful GNN methods.
+  These testbed datasets can still be improved, as the node features are minimal (only a binary color) and recognition of particular topological patterns (e.g., rings or other subgraphs) is not needed to solve the task.
 
-[comment]: <> (  The binary classification task is then distinguishing between these two cases.)
-
-[comment]: <> (  The node colorings were sampled by running two red-coloring random walks starting from two random nodes.)
-
-[comment]: <> (* For the underlying graph topology we used: 1&#41; 16x16 2D grid, 2&#41; 32x32 2D grid, 3&#41; Euroroad road network &#40;Šubelj et al. 2011&#41;, and 4&#41; Minnesota road network.)
-
-[comment]: <> (* We sampled a balanced set of 15,000 coloring examples for each graph, except for Minnesota network for which we generated 6,000 examples due to memory constraints.)
-
-[comment]: <> (* The Color-connectivity task requires combination of local and long-range graph information processing to which most existing message-passing Graph Neural Networks &#40;GNNs&#41; do not scale.)
-
-[comment]: <> (  These datasets can serve as a common-sense validation for new and more powerful GNN methods.)
-
-[comment]: <> (  These testbed datasets can still be improved, as the node features are minimal &#40;only a binary color&#41; and recognition of particular topological patterns &#40;e.g., rings or other subgraphs&#41; is not needed to solve the task.)
+### Citation networks with k-hop sanitized dataset splits
+In an effort to make prediction tasks of CiteSeer, Cora
+and PubMed citation networks more suitable for testing the
+models’ ability to utilize information from farther nodes, we
+experimented with a specific resampling of their training, validation and test splits:
+* The standard semi-supervised splits follow the same key for each
+  dataset: 20 examples from each class are randomly selected for training, while 500 and 1000
+  examples are drawn uniformly randomly for the validation and test splits.
+* We used principally the same key, but a different random sampling strategy.
+  Once a node is drawn, we enforced that none of its k-th degree neighbors is selected for any split. 
+  This approach guarantees that a k-hop neighborhood of each labeled node is “sanitized” of labels. 
+* As such, we prevent potential correct-class label imprinting in the representation 
+  of these k-th degree neighbors during the semi-supervised transductive training.
+* For a model to leverage such imprinting benefit of homophily, it has to be able to reach beyond this 
+  k-hop neighborhood, assuming that the class homophily spans that far in the underlying data.
 
 
 ## Citation
